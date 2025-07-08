@@ -19,8 +19,9 @@ const BlogPostPage = () => {
 
   const fetchPost = async () => {
     try {
+      console.log('Fetching blog post with slug:', slug);
       const { data, error } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .select('*')
         .eq('slug', slug)
         .eq('published', true)
@@ -28,11 +29,13 @@ const BlogPostPage = () => {
 
       if (error) {
         if (error.code === 'PGRST116') {
+          console.log('Blog post not found');
           setNotFound(true);
         } else {
           throw error;
         }
       } else {
+        console.log('Blog post fetched:', data);
         setPost(data);
       }
     } catch (error) {
@@ -75,7 +78,6 @@ const BlogPostPage = () => {
               />
             </div>
           )}
-          
           <div className="p-8">
             <div className="flex items-center text-sm text-gray-500 mb-6">
               <SafeIcon icon={FiCalendar} className="h-4 w-4 mr-2" />
@@ -87,19 +89,17 @@ const BlogPostPage = () => {
                 })}
               </time>
             </div>
-            
             <h1 className="text-3xl font-bold text-gray-900 mb-8">
               {post.title}
             </h1>
-            
-            <div className="prose prose-lg max-w-none">
-              {post.body.split('\n').map((paragraph, index) => (
-                <p key={index} className="mb-4 text-gray-700 leading-relaxed">
-                  {paragraph}
-                </p>
-              ))}
-            </div>
-            
+
+            {/* Render HTML content from rich text editor */}
+            <div
+              className="prose prose-lg max-w-none"
+              dangerouslySetInnerHTML={{ __html: post.body }}
+              style={{ lineHeight: '1.7', fontSize: '1.1rem' }}
+            />
+
             <div className="mt-12 pt-8 border-t border-gray-200">
               <a
                 href="/blog"

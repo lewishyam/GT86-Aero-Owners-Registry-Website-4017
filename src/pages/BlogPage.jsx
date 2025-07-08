@@ -17,13 +17,16 @@ const BlogPage = () => {
 
   const fetchPosts = async () => {
     try {
+      console.log('Fetching published blog posts');
       const { data, error } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .select('*')
         .eq('published', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Blog posts fetched:', data);
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -80,7 +83,6 @@ const BlogPage = () => {
                       />
                     </div>
                   )}
-                  
                   <div className={`p-6 ${post.cover_image_url ? 'md:w-2/3' : 'w-full'}`}>
                     <div className="flex items-center text-sm text-gray-500 mb-3">
                       <SafeIcon icon={FiCalendar} className="h-4 w-4 mr-2" />
@@ -92,20 +94,14 @@ const BlogPage = () => {
                         })}
                       </time>
                     </div>
-                    
                     <h2 className="text-xl font-bold text-gray-900 mb-3">
-                      <Link 
-                        to={`/blog/${post.slug}`}
-                        className="hover:text-red-600 transition-colors"
-                      >
+                      <Link to={`/blog/${post.slug}`} className="hover:text-red-600 transition-colors">
                         {post.title}
                       </Link>
                     </h2>
-                    
                     <p className="text-gray-600 mb-4 line-clamp-3">
                       {post.body.substring(0, 150)}...
                     </p>
-                    
                     <Link
                       to={`/blog/${post.slug}`}
                       className="inline-flex items-center text-red-600 hover:text-red-700 font-medium"

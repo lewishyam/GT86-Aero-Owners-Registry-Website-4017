@@ -1,6 +1,7 @@
-import React from 'react';
-import { HashRouter as Router, Routes, Route } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSiteSettings } from './hooks/useSiteSettings';
 import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import CodeInjection from './components/Layout/CodeInjection';
@@ -11,6 +12,7 @@ import AuthPage from './pages/AuthPage';
 import DashboardPage from './pages/DashboardPage';
 import BlogPage from './pages/BlogPage';
 import BlogPostPage from './pages/BlogPostPage';
+import MemberProfilePage from './pages/MemberProfilePage';
 
 // Admin imports
 import AdminRoute from './components/Admin/AdminRoute';
@@ -24,19 +26,68 @@ import CodeSnippets from './pages/Admin/CodeSnippets';
 
 import './App.css';
 
+// Component to handle route animations
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/directory" element={<DirectoryPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/blog" element={<BlogPage />} />
+        <Route path="/blog/:slug" element={<BlogPostPage />} />
+        <Route path="/member/:username" element={<MemberProfilePage />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
+
 function App() {
+  const { settings } = useSiteSettings();
+
+  useEffect(() => {
+    // Update document title
+    if (settings.site_title) {
+      document.title = settings.site_title;
+    }
+
+    // Update meta description
+    const metaDescription = document.querySelector('meta[name="description"]');
+    if (metaDescription && settings.meta_description) {
+      metaDescription.setAttribute('content', settings.meta_description);
+    }
+
+    // Update favicon
+    if (settings.favicon_url) {
+      let favicon = document.querySelector('link[rel="icon"]');
+      if (!favicon) {
+        favicon = document.createElement('link');
+        favicon.rel = 'icon';
+        document.head.appendChild(favicon);
+      }
+      favicon.href = settings.favicon_url;
+    }
+  }, [settings]);
+
   return (
     <Router>
       <div className="min-h-screen bg-gray-50 flex flex-col">
         <CodeInjection location="head" />
         
         <Routes>
-          {/* Admin Routes */}
-          <Route path="/admin/*" element={
-            <AdminRoute>
-              <AdminLayout />
-            </AdminRoute>
-          }>
+          {/* Admin Routes (Protected) */}
+          <Route 
+            path="/admin/*" 
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
             <Route index element={<AdminDashboard />} />
             <Route path="settings" element={<SiteSettings />} />
             <Route path="blog" element={<BlogManagement />} />
@@ -46,28 +97,21 @@ function App() {
             <Route path="snippets" element={<CodeSnippets />} />
           </Route>
 
-          {/* Public Routes */}
-          <Route path="/*" element={
-            <>
-              <Header />
-              <main className="flex-1">
-                <AnimatePresence mode="wait">
-                  <Routes>
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/register" element={<RegisterPage />} />
-                    <Route path="/directory" element={<DirectoryPage />} />
-                    <Route path="/auth" element={<AuthPage />} />
-                    <Route path="/dashboard" element={<DashboardPage />} />
-                    <Route path="/blog" element={<BlogPage />} />
-                    <Route path="/blog/:slug" element={<BlogPostPage />} />
-                  </Routes>
-                </AnimatePresence>
-              </main>
-              <Footer />
-            </>
-          } />
+          {/* All other routes with Header/Footer */}
+          <Route 
+            path="*" 
+            element={
+              <>
+                <Header />
+                <main className="flex-1">
+                  <AnimatedRoutes />
+                </main>
+                <Footer />
+              </>
+            } 
+          />
         </Routes>
-        
+
         <CodeInjection location="body" />
       </div>
     </Router>

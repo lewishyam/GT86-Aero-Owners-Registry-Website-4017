@@ -10,13 +10,15 @@ const CodeInjection = ({ location }) => {
 
   const fetchSnippets = async () => {
     try {
+      console.log('Fetching code snippets for location:', location);
       const { data, error } = await supabase
-        .from('site_snippets_gt86aero2024')
+        .from('site_snippets')
         .select('content')
         .eq('location', location)
         .eq('enabled', true);
 
       if (error) throw error;
+      console.log('Code snippets fetched:', data);
       setSnippets(data || []);
     } catch (error) {
       console.error('Error fetching code snippets:', error);
@@ -28,10 +30,7 @@ const CodeInjection = ({ location }) => {
   return (
     <>
       {snippets.map((snippet, index) => (
-        <div
-          key={index}
-          dangerouslySetInnerHTML={{ __html: snippet.content }}
-        />
+        <div key={index} dangerouslySetInnerHTML={{ __html: snippet.content }} />
       ))}
     </>
   );

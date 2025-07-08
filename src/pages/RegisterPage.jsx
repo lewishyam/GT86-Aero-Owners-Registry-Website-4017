@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../config/supabase';
 import { useAuth } from '../hooks/useAuth';
@@ -11,6 +11,8 @@ const { FiUpload, FiTrash2, FiCheck } = FiIcons;
 const RegisterPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [existingProfile, setExistingProfile] = useState(null);
@@ -52,13 +54,20 @@ const RegisterPage = () => {
 
   const fetchExistingProfile = async () => {
     try {
+      console.log('Fetching existing profile for user:', user.id);
       const { data, error } = await supabase
-        .from('owners_gt86aero2024')
+        .from('owners')
         .select('*')
         .eq('user_id', user.id)
         .single();
 
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching profile:', error);
+        return;
+      }
+
       if (data) {
+        console.log('Existing profile found:', data);
         setExistingProfile(data);
         setFormData({
           display_name: data.display_name || '',
@@ -74,10 +83,58 @@ const RegisterPage = () => {
           show_on_map: data.show_on_map ?? true,
         });
         setUploadedImages(data.photo_urls || []);
+      } else {
+        console.log('No existing profile found');
       }
     } catch (error) {
       console.error('Error fetching existing profile:', error);
     }
+  };
+
+  const generateUsername = (displayName) => {
+    let username = displayName
+      .toLowerCase()
+      .replace(/[^a-zA-Z0-9]/g, '')
+      .substring(0, 30);
+    return username;
+  };
+
+  const checkUsernameAvailability = async (username, currentUserId = null) => {
+    try {
+      let query = supabase
+        .from('owners')
+        .select('id')
+        .eq('username', username);
+
+      if (currentUserId) {
+        query = query.neq('user_id', currentUserId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data.length === 0;
+    } catch (error) {
+      console.error('Error checking username:', error);
+      return false;
+    }
+  };
+
+  const generateUniqueUsername = async (displayName, currentUserId = null) => {
+    let baseUsername = generateUsername(displayName);
+    let username = baseUsername;
+    let counter = 1;
+
+    while (!(await checkUsernameAvailability(username, currentUserId))) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+      if (counter > 100) {
+        username = `${baseUsername}${Date.now()}`;
+        break;
+      }
+    }
+
+    return username;
   };
 
   const handleInputChange = (e) => {
@@ -142,46 +199,73 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
     if (!user) {
       alert('Please sign in to register your Aero');
+      localStorage.setItem('redirectAfterAuth', location.pathname);
       navigate('/auth');
+      return;
+    }
+
+    if (!formData.display_name.trim()) {
+      alert('Display name is required');
       return;
     }
 
     setLoading(true);
 
     try {
-      const cleanInstagramUrls = formData.instagram_post_urls.filter(url => url.trim());
+      console.log('Starting profile save process');
       
+      const cleanInstagramUrls = formData.instagram_post_urls.filter(url => url.trim());
+      const username = await generateUniqueUsername(
+        formData.display_name,
+        existingProfile ? user.id : null
+      );
+
+      console.log('Generated username:', username);
+
       const profileData = {
         ...formData,
+        username,
         instagram_post_urls: cleanInstagramUrls,
         photo_urls: uploadedImages,
         user_id: user.id,
-        year: parseInt(formData.year)
+        year: parseInt(formData.year),
+        badges: existingProfile?.badges || []
       };
+
+      console.log('Profile data to save:', profileData);
 
       let result;
       if (existingProfile) {
-        // Update existing profile
+        console.log('Updating existing profile');
         result = await supabase
-          .from('owners_gt86aero2024')
+          .from('owners')
           .update(profileData)
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .select();
       } else {
-        // Insert new profile
+        console.log('Creating new profile');
         result = await supabase
-          .from('owners_gt86aero2024')
-          .insert([profileData]);
+          .from('owners')
+          .insert([profileData])
+          .select();
       }
 
-      if (result.error) throw result.error;
+      console.log('Database operation result:', result);
 
+      if (result.error) {
+        console.error('Database error:', result.error);
+        throw result.error;
+      }
+
+      console.log('Profile saved successfully:', result.data);
       alert(existingProfile ? 'Profile updated successfully!' : 'Registration successful! Welcome to the GT86 Aero Owners Club.');
       navigate('/dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
-      alert('Error saving profile. Please try again.');
+      alert('Error saving profile: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -190,14 +274,17 @@ const RegisterPage = () => {
   if (!user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="bg-white p-8 rounded-xl shadow-sm text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h2>
-          <p className="text-gray-600 mb-6">Please sign in to register your GT86 Aero</p>
+        <div className="bg-white p-8 rounded-xl shadow-sm text-center max-w-md">
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign In or Create an Account</h2>
+          <p className="text-gray-600 mb-6">To register your GT86 Aero, you'll need to sign in or create a free account.</p>
           <button
-            onClick={() => navigate('/auth')}
+            onClick={() => {
+              localStorage.setItem('redirectAfterAuth', location.pathname);
+              navigate('/auth');
+            }}
             className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
           >
-            Sign In
+            Continue
           </button>
         </div>
       </div>
@@ -236,6 +323,9 @@ const RegisterPage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
                 placeholder="How you'd like to be known"
               />
+              <p className="text-sm text-gray-500 mt-1">
+                Your profile URL will be: gt86aero.com/member/{generateUsername(formData.display_name || 'yourname')}
+              </p>
             </div>
 
             {/* Instagram Handle */}

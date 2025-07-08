@@ -11,6 +11,7 @@ const CodeSnippets = () => {
   const [loading, setLoading] = useState(true);
   const [editingSnippet, setEditingSnippet] = useState(null);
   const [formData, setFormData] = useState({
+    name: '',
     location: 'head',
     content: '',
     enabled: true
@@ -22,12 +23,15 @@ const CodeSnippets = () => {
 
   const fetchSnippets = async () => {
     try {
+      console.log('Fetching code snippets');
       const { data, error } = await supabase
-        .from('site_snippets_gt86aero2024')
+        .from('site_snippets')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Code snippets fetched:', data);
       setSnippets(data || []);
     } catch (error) {
       console.error('Error fetching snippets:', error);
@@ -38,31 +42,32 @@ const CodeSnippets = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    if (!formData.content.trim()) {
-      alert('Please enter snippet content');
+    if (!formData.name.trim() || !formData.content.trim()) {
+      alert('Please enter snippet name and content');
       return;
     }
 
     try {
       let result;
+      console.log('Saving code snippet:', formData);
+
       if (editingSnippet) {
         result = await supabase
-          .from('site_snippets_gt86aero2024')
+          .from('site_snippets')
           .update(formData)
           .eq('id', editingSnippet.id);
       } else {
         result = await supabase
-          .from('site_snippets_gt86aero2024')
+          .from('site_snippets')
           .insert([formData]);
       }
 
       if (result.error) throw result.error;
-
-      setFormData({ location: 'head', content: '', enabled: true });
+      
+      console.log('Snippet saved successfully:', result);
+      setFormData({ name: '', location: 'head', content: '', enabled: true });
       setEditingSnippet(null);
       fetchSnippets();
-      
       alert(editingSnippet ? 'Snippet updated successfully!' : 'Snippet created successfully!');
     } catch (error) {
       console.error('Error saving snippet:', error);
@@ -73,6 +78,7 @@ const CodeSnippets = () => {
   const editSnippet = (snippet) => {
     setEditingSnippet(snippet);
     setFormData({
+      name: snippet.name || '',
       location: snippet.location,
       content: snippet.content,
       enabled: snippet.enabled
@@ -81,21 +87,21 @@ const CodeSnippets = () => {
 
   const cancelEdit = () => {
     setEditingSnippet(null);
-    setFormData({ location: 'head', content: '', enabled: true });
+    setFormData({ name: '', location: 'head', content: '', enabled: true });
   };
 
   const toggleEnabled = async (id, currentStatus) => {
     try {
+      console.log('Toggling snippet status:', id);
       const { error } = await supabase
-        .from('site_snippets_gt86aero2024')
+        .from('site_snippets')
         .update({ enabled: !currentStatus })
         .eq('id', id);
 
       if (error) throw error;
       
-      setSnippets(snippets.map(snippet => 
-        snippet.id === id ? { ...snippet, enabled: !currentStatus } : snippet
-      ));
+      console.log('Snippet status updated successfully');
+      setSnippets(snippets.map(snippet => snippet.id === id ? { ...snippet, enabled: !currentStatus } : snippet));
     } catch (error) {
       console.error('Error updating snippet:', error);
       alert('Error updating snippet status');
@@ -106,13 +112,15 @@ const CodeSnippets = () => {
     if (!window.confirm('Are you sure you want to delete this snippet?')) return;
 
     try {
+      console.log('Deleting snippet:', id);
       const { error } = await supabase
-        .from('site_snippets_gt86aero2024')
+        .from('site_snippets')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
       
+      console.log('Snippet deleted successfully');
       setSnippets(snippets.filter(snippet => snippet.id !== id));
     } catch (error) {
       console.error('Error deleting snippet:', error);
@@ -144,9 +152,21 @@ const CodeSnippets = () => {
         <h2 className="text-lg font-semibold text-gray-900 mb-4">
           {editingSnippet ? 'Edit Snippet' : 'Add New Snippet'}
         </h2>
-        
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Snippet Name
+              </label>
+              <input
+                type="text"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                placeholder="e.g., Google Analytics"
+                required
+              />
+            </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Injection Location
@@ -160,7 +180,6 @@ const CodeSnippets = () => {
                 <option value="body">Body Section</option>
               </select>
             </div>
-
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -174,7 +193,6 @@ const CodeSnippets = () => {
               </label>
             </div>
           </div>
-
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Code Content
@@ -185,9 +203,9 @@ const CodeSnippets = () => {
               rows={8}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 font-mono text-sm"
               placeholder="Enter your HTML, CSS, or JavaScript code here..."
+              required
             />
           </div>
-
           <div className="flex items-center space-x-3">
             <button
               type="submit"
@@ -217,7 +235,6 @@ const CodeSnippets = () => {
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">Active Snippets</h3>
         </div>
-
         {snippets.length === 0 ? (
           <div className="text-center py-12">
             <SafeIcon icon={FiCode} className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -231,18 +248,21 @@ const CodeSnippets = () => {
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center space-x-3 mb-2">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        snippet.location === 'head' 
-                          ? 'bg-blue-100 text-blue-800' 
-                          : 'bg-purple-100 text-purple-800'
-                      }`}>
+                      <h4 className="font-medium text-gray-900">
+                        {snippet.name || 'Untitled Snippet'}
+                      </h4>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          snippet.location === 'head' ? 'bg-blue-100 text-blue-800' : 'bg-purple-100 text-purple-800'
+                        }`}
+                      >
                         {snippet.location === 'head' ? 'Head' : 'Body'}
                       </span>
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        snippet.enabled 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          snippet.enabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        }`}
+                      >
                         {snippet.enabled ? 'Enabled' : 'Disabled'}
                       </span>
                     </div>
@@ -250,7 +270,6 @@ const CodeSnippets = () => {
                       {snippet.content}
                     </pre>
                   </div>
-                  
                   <div className="flex items-center space-x-2 ml-4">
                     <button
                       onClick={() => editSnippet(snippet)}

@@ -10,8 +10,9 @@ const DynamicContent = ({ contentKey, defaultValue = '', className = '' }) => {
 
   const fetchContent = async () => {
     try {
+      console.log('Fetching content for key:', contentKey);
       const { data, error } = await supabase
-        .from('site_content_gt86aero2024')
+        .from('site_content')
         .select('value')
         .eq('key', contentKey)
         .single();
@@ -20,7 +21,8 @@ const DynamicContent = ({ contentKey, defaultValue = '', className = '' }) => {
         console.error('Error fetching content:', error);
         return;
       }
-
+      
+      console.log('Content fetched:', data);
       setContent(data.value || defaultValue);
     } catch (error) {
       console.error('Error fetching content:', error);

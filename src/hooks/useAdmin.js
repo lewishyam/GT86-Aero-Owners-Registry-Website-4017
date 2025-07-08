@@ -19,15 +19,14 @@ export const useAdmin = () => {
   const checkAdminStatus = async () => {
     try {
       console.log('Checking admin status for user:', user.id);
-      
       const { data, error } = await supabase
-        .from('admins_gt86aero2024')
+        .from('admins')
         .select('id')
         .eq('user_id', user.id)
         .single();
 
       console.log('Admin check result:', { data, error });
-      
+
       if (error) {
         console.error('Error checking admin status:', error);
         setIsAdmin(false);

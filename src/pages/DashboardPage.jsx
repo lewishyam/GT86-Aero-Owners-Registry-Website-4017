@@ -22,8 +22,9 @@ const DashboardPage = () => {
 
   const fetchProfile = async () => {
     try {
+      console.log('Fetching profile for user:', user.id);
       const { data, error } = await supabase
-        .from('owners_gt86aero2024')
+        .from('owners')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -32,6 +33,7 @@ const DashboardPage = () => {
         throw error;
       }
 
+      console.log('Profile data:', data);
       setProfile(data);
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -47,7 +49,7 @@ const DashboardPage = () => {
 
     try {
       const { error } = await supabase
-        .from('owners_gt86aero2024')
+        .from('owners')
         .delete()
         .eq('user_id', user.id);
 
@@ -76,12 +78,8 @@ const DashboardPage = () => {
     <div className="min-h-screen bg-gray-50 py-12">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <h1 className="text-3xl font-bold text-gray-900 mb-4">
-            Your Dashboard
-          </h1>
-          <p className="text-gray-600">
-            Manage your GT86 Aero registration and profile
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">Your Dashboard</h1>
+          <p className="text-gray-600">Manage your GT86 Aero registration and profile</p>
         </div>
 
         {!profile ? (
@@ -91,12 +89,9 @@ const DashboardPage = () => {
             className="bg-white rounded-xl shadow-sm p-8 text-center"
           >
             <SafeIcon icon={FiCar} className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Register Your GT86 Aero
-            </h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Register Your GT86 Aero</h2>
             <p className="text-gray-600 mb-6">
-              You haven't registered your GT86 Aero yet. Join the exclusive registry 
-              and connect with fellow Aero owners worldwide.
+              You haven't registered your GT86 Aero yet. Join the exclusive registry and connect with fellow Aero owners worldwide.
             </p>
             <button
               onClick={() => navigate('/register')}
@@ -184,19 +179,14 @@ const DashboardPage = () => {
                     <div>
                       <p className="text-sm text-gray-600">Profile Status</p>
                       <div className="flex items-center space-x-4 mt-1">
-                        <span className={`text-sm font-medium ${
-                          profile.public_profile ? 'text-green-600' : 'text-gray-600'
-                        }`}>
+                        <span className={`text-sm font-medium ${profile.public_profile ? 'text-green-600' : 'text-gray-600'}`}>
                           {profile.public_profile ? 'Public' : 'Private'}
                         </span>
-                        <span className={`text-sm font-medium ${
-                          profile.show_on_map ? 'text-green-600' : 'text-gray-600'
-                        }`}>
+                        <span className={`text-sm font-medium ${profile.show_on_map ? 'text-green-600' : 'text-gray-600'}`}>
                           {profile.show_on_map ? 'On Map' : 'Not on Map'}
                         </span>
                       </div>
                     </div>
-                    
                     <div className="flex space-x-3">
                       <button
                         onClick={() => navigate('/register')}
@@ -220,20 +210,16 @@ const DashboardPage = () => {
 
             {/* Quick Actions */}
             <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                Quick Actions
-              </h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <button
                   onClick={() => navigate('/directory')}
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   <h4 className="font-medium text-gray-900">Browse Directory</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Explore other GT86 Aero owners
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Explore other GT86 Aero owners</p>
                 </button>
-                
+
                 <a
                   href="https://instagram.com/explore/tags/GT86AeroClub"
                   target="_blank"
@@ -241,19 +227,15 @@ const DashboardPage = () => {
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   <h4 className="font-medium text-gray-900">Community Feed</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Check out #GT86AeroClub
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Check out #GT86AeroClub</p>
                 </a>
-                
+
                 <button
                   onClick={() => navigate('/register')}
                   className="p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors text-left"
                 >
                   <h4 className="font-medium text-gray-900">Update Profile</h4>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Edit your registration details
-                  </p>
+                  <p className="text-sm text-gray-600 mt-1">Edit your registration details</p>
                 </button>
               </div>
             </div>

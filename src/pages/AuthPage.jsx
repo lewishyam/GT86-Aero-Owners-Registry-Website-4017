@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../config/supabase';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
@@ -11,13 +12,23 @@ const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [resetEmailSent, setResetEmailSent] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: ''
   });
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, user } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (user) {
+      const redirectPath = localStorage.getItem('redirectAfterAuth') || '/dashboard';
+      localStorage.removeItem('redirectAfterAuth');
+      navigate(redirectPath);
+    }
+  }, [user, navigate]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -37,21 +48,45 @@ const AuthPage = () => {
           alert('Passwords do not match');
           return;
         }
-        
+
         const { error } = await signUp(formData.email, formData.password);
         if (error) throw error;
-        
-        alert('Check your email for the confirmation link!');
+
+        alert('Account created successfully! You can now sign in.');
+        setIsSignUp(false);
+        setFormData({ ...formData, password: '', confirmPassword: '' });
       } else {
         const { error } = await signIn(formData.email, formData.password);
         if (error) throw error;
-        
-        navigate('/dashboard');
+
+        // Redirect will be handled by useEffect
       }
     } catch (error) {
+      console.error('Auth error:', error);
       alert(error.message || 'An error occurred');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePasswordReset = async () => {
+    if (!formData.email) {
+      alert('Please enter your email address first');
+      return;
+    }
+
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
+        redirectTo: `${window.location.origin}/auth`
+      });
+
+      if (error) throw error;
+
+      setResetEmailSent(true);
+      alert('Password reset email sent! Check your inbox.');
+    } catch (error) {
+      console.error('Password reset error:', error);
+      alert('Error sending password reset email: ' + error.message);
     }
   };
 
@@ -64,12 +99,12 @@ const AuthPage = () => {
           className="text-center"
         >
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            {isSignUp ? 'Join the Club' : 'Welcome Back'}
+            Welcome to the GT86 Aero Owners Club
           </h2>
           <p className="text-gray-600">
             {isSignUp 
-              ? 'Create your account to register your GT86 Aero'
-              : 'Sign in to your GT86 Aero Owners Club account'
+              ? 'Create your account to register your GT86 Aero' 
+              : 'Sign in to manage your GT86 Aero profile'
             }
           </p>
         </motion.div>
@@ -123,12 +158,24 @@ const AuthPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <SafeIcon
-                    icon={showPassword ? FiEyeOff : FiEye}
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
+                  <SafeIcon 
+                    icon={showPassword ? FiEyeOff : FiEye} 
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600" 
                   />
                 </button>
               </div>
+              
+              {!isSignUp && (
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={handlePasswordReset}
+                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                  >
+                    Forgot your password?
+                  </button>
+                </div>
+              )}
             </div>
 
             {isSignUp && (
@@ -158,21 +205,29 @@ const AuthPage = () => {
               disabled={loading}
               className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white py-2 px-4 rounded-lg font-medium transition-colors"
             >
-              {loading ? 'Please wait...' : (isSignUp ? 'Sign Up' : 'Sign In')}
+              {loading ? 'Please wait...' : (isSignUp ? 'Create Account' : 'Sign In')}
             </button>
           </form>
 
           <div className="mt-6 text-center">
+            <p className="text-gray-600 text-sm mb-3">
+              {isSignUp ? 'Already have an account?' : 'New to GT86 Aero Owners Club?'}
+            </p>
             <button
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-red-600 hover:text-red-700 font-medium"
             >
-              {isSignUp 
-                ? 'Already have an account? Sign in'
-                : "Don't have an account? Sign up"
-              }
+              {isSignUp ? 'Sign in to your account' : 'Create a free account'}
             </button>
           </div>
+
+          {resetEmailSent && (
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-green-800 text-sm">
+                Password reset email sent! Check your inbox and spam folder.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>

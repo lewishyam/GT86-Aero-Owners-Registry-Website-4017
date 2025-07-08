@@ -5,7 +5,7 @@ import { supabase } from '../config/supabase';
 import SafeIcon from '../common/SafeIcon';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiFilter, FiInstagram, FiMapPin, FiCar } = FiIcons;
+const { FiFilter, FiInstagram, FiMapPin, FiCar, FiStar } = FiIcons;
 
 const DirectoryPage = () => {
   const [owners, setOwners] = useState([]);
@@ -27,13 +27,16 @@ const DirectoryPage = () => {
 
   const fetchOwners = async () => {
     try {
+      console.log('Fetching public owners');
       const { data, error } = await supabase
-        .from('owners_gt86aero2024')
+        .from('owners')
         .select('*')
         .eq('public_profile', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+
+      console.log('Owners fetched:', data);
       setOwners(data || []);
     } catch (error) {
       console.error('Error fetching owners:', error);
@@ -48,9 +51,11 @@ const DirectoryPage = () => {
     if (filters.colour) {
       filtered = filtered.filter(owner => owner.colour === filters.colour);
     }
+
     if (filters.country) {
       filtered = filtered.filter(owner => owner.country === filters.country);
     }
+
     if (filters.transmission) {
       filtered = filtered.filter(owner => owner.transmission === filters.transmission);
     }
@@ -98,8 +103,7 @@ const DirectoryPage = () => {
             GT86 Aero Owners Directory
           </h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Discover GT86 Aero owners from around the world. Connect with fellow enthusiasts 
-            and explore the rarest GT86 variant ever made.
+            Discover GT86 Aero owners from around the world. Connect with fellow enthusiasts and explore the rarest GT86 variant ever made.
           </p>
         </div>
 
@@ -180,9 +184,7 @@ const DirectoryPage = () => {
         {filteredOwners.length === 0 ? (
           <div className="text-center py-12">
             <SafeIcon icon={FiCar} className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              No Aeros Found
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Aeros Found</h3>
             <p className="text-gray-600">
               Try adjusting your filters or be the first to register your Aero!
             </p>
@@ -217,7 +219,7 @@ const OwnerCard = ({ owner }) => {
     // Try to get first Instagram post URL or fallback to uploaded image
     const instagramUrl = owner.instagram_post_urls?.[0];
     const uploadedImage = owner.photo_urls?.[0];
-    
+
     if (instagramUrl) {
       // Extract Instagram post ID for embed
       const postId = instagramUrl.split('/p/')[1]?.split('/')[0];
@@ -225,70 +227,74 @@ const OwnerCard = ({ owner }) => {
         return `https://www.instagram.com/p/${postId}/media/?size=m`;
       }
     }
-    
+
     return uploadedImage;
   };
 
   const displayImage = getDisplayImage();
 
   return (
-    <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-      {displayImage && (
-        <div className="aspect-square bg-gray-100">
-          <img
-            src={displayImage}
-            alt={`${owner.display_name}'s GT86 Aero`}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
-        </div>
-      )}
-      
-      <div className="p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {owner.display_name}
-        </h3>
-        
-        <div className="space-y-2 text-sm text-gray-600">
-          <div className="flex items-center space-x-2">
-            <SafeIcon icon={FiMapPin} className="h-4 w-4" />
-            <span>
-              {owner.country}
-              {owner.uk_region && ` • ${owner.uk_region}`}
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <SafeIcon icon={FiCar} className="h-4 w-4" />
-            <span>{owner.year} • {owner.colour} • {owner.transmission}</span>
-          </div>
-          
-          {owner.instagram_handle && (
-            <div className="flex items-center space-x-2 text-red-600">
-              <SafeIcon icon={FiInstagram} className="h-4 w-4" />
-              <a
-                href={`https://instagram.com/${owner.instagram_handle}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:underline"
-              >
-                @{owner.instagram_handle}
-              </a>
+    <Link to={`/member/${owner.username}`}>
+      <div className="bg-white rounded-xl shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+        <div className="relative">
+          {displayImage && (
+            <div className="aspect-square bg-gray-100">
+              <img
+                src={displayImage}
+                alt={`${owner.display_name}'s GT86 Aero`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.style.display = 'none';
+                }}
+              />
+            </div>
+          )}
+          {owner.featured && (
+            <div className="absolute top-4 right-4">
+              <div className="bg-yellow-500 text-white p-2 rounded-full">
+                <SafeIcon icon={FiStar} className="h-4 w-4" />
+              </div>
             </div>
           )}
         </div>
-        
-        {owner.mod_list && (
-          <div className="mt-4 pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-600 line-clamp-2">
-              <span className="font-medium">Mods:</span> {owner.mod_list}
-            </p>
+
+        <div className="p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            {owner.display_name}
+          </h3>
+
+          <div className="space-y-2 text-sm text-gray-600">
+            <div className="flex items-center space-x-2">
+              <SafeIcon icon={FiMapPin} className="h-4 w-4" />
+              <span>
+                {owner.country}
+                {owner.uk_region && ` • ${owner.uk_region}`}
+              </span>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <SafeIcon icon={FiCar} className="h-4 w-4" />
+              <span>{owner.year} • {owner.colour} • {owner.transmission}</span>
+            </div>
+
+            {owner.instagram_handle && (
+              <div className="flex items-center space-x-2 text-red-600">
+                <SafeIcon icon={FiInstagram} className="h-4 w-4" />
+                <span>@{owner.instagram_handle}</span>
+              </div>
+            )}
           </div>
-        )}
+
+          {owner.mod_list && (
+            <div className="mt-4 pt-4 border-t border-gray-100">
+              <p className="text-sm text-gray-600 line-clamp-2">
+                <span className="font-medium">Mods:</span> {owner.mod_list}
+              </p>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 

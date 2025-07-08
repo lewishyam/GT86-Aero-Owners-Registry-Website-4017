@@ -17,12 +17,15 @@ const BlogManagement = () => {
 
   const fetchPosts = async () => {
     try {
+      console.log('Fetching all blog posts');
       const { data, error } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      console.log('Blog posts fetched:', data);
       setPosts(data || []);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -33,16 +36,16 @@ const BlogManagement = () => {
 
   const togglePublished = async (id, currentStatus) => {
     try {
+      console.log('Toggling published status for post:', id);
       const { error } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .update({ published: !currentStatus })
         .eq('id', id);
 
       if (error) throw error;
       
-      setPosts(posts.map(post => 
-        post.id === id ? { ...post, published: !currentStatus } : post
-      ));
+      console.log('Post status updated successfully');
+      setPosts(posts.map(post => post.id === id ? { ...post, published: !currentStatus } : post));
     } catch (error) {
       console.error('Error updating post:', error);
       alert('Error updating post status');
@@ -53,13 +56,15 @@ const BlogManagement = () => {
     if (!window.confirm('Are you sure you want to delete this post?')) return;
 
     try {
+      console.log('Deleting post:', id);
       const { error } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .delete()
         .eq('id', id);
 
       if (error) throw error;
       
+      console.log('Post deleted successfully');
       setPosts(posts.filter(post => post.id !== id));
     } catch (error) {
       console.error('Error deleting post:', error);
@@ -133,8 +138,8 @@ const BlogManagement = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center">
                         {post.cover_image_url && (
-                          <img 
-                            src={post.cover_image_url} 
+                          <img
+                            src={post.cover_image_url}
                             alt={post.title}
                             className="h-10 w-10 object-cover rounded mr-3"
                           />
@@ -146,11 +151,11 @@ const BlogManagement = () => {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        post.published 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                      <span
+                        className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                          post.published ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+                        }`}
+                      >
                         {post.published ? 'Published' : 'Draft'}
                       </span>
                     </td>
@@ -159,10 +164,7 @@ const BlogManagement = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                       <div className="flex items-center space-x-2">
-                        <Link
-                          to={`/admin/blog/edit/${post.id}`}
-                          className="text-blue-600 hover:text-blue-700"
-                        >
+                        <Link to={`/admin/blog/edit/${post.id}`} className="text-blue-600 hover:text-blue-700">
                           <SafeIcon icon={FiEdit} className="h-4 w-4" />
                         </Link>
                         <button

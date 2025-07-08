@@ -26,20 +26,28 @@ const AdminDashboard = () => {
 
   const fetchStats = async () => {
     try {
+      console.log('Fetching admin dashboard stats');
+      
       // Get member stats
       const { data: members } = await supabase
-        .from('owners_gt86aero2024')
+        .from('owners')
         .select('public_profile, featured');
+      
+      console.log('Members stats fetched:', members);
 
       // Get blog stats
       const { data: blogs } = await supabase
-        .from('blog_posts_gt86aero2024')
+        .from('blog_posts')
         .select('published');
+        
+      console.log('Blog stats fetched:', blogs);
 
       // Get snippet stats
       const { data: snippets } = await supabase
-        .from('site_snippets_gt86aero2024')
+        .from('site_snippets')
         .select('enabled');
+        
+      console.log('Snippet stats fetched:', snippets);
 
       setStats({
         totalMembers: members?.length || 0,
