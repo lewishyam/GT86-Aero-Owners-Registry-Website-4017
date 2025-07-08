@@ -43,10 +43,10 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             {settings.site_logo_url ? (
-              <img 
-                src={settings.site_logo_url} 
-                alt="GT86Aero.com Logo" 
-                className="h-10 w-auto" 
+              <img
+                src={settings.site_logo_url}
+                alt="GT86Aero.com Logo"
+                className="h-10 w-auto"
               />
             ) : (
               <div className="bg-red-600 p-2 rounded-lg">
@@ -88,7 +88,7 @@ const Header = () => {
                   <SafeIcon icon={FiUser} className="h-4 w-4" />
                   <span>Dashboard</span>
                 </Link>
-                
+
                 {isAdmin && (
                   <Link
                     to="/admin"
@@ -102,7 +102,7 @@ const Header = () => {
                     <span>Admin</span>
                   </Link>
                 )}
-                
+
                 <button
                   onClick={handleSignOut}
                   className="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-red-600 transition-colors"
@@ -126,9 +126,9 @@ const Header = () => {
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className="md:hidden p-2"
           >
-            <SafeIcon 
-              icon={mobileMenuOpen ? FiX : FiMenu} 
-              className="h-6 w-6 text-gray-700" 
+            <SafeIcon
+              icon={mobileMenuOpen ? FiX : FiMenu}
+              className="h-6 w-6 text-gray-700"
             />
           </button>
         </div>
@@ -170,7 +170,7 @@ const Header = () => {
                   >
                     Dashboard
                   </Link>
-                  
+
                   {isAdmin && (
                     <Link
                       to="/admin"
@@ -184,7 +184,7 @@ const Header = () => {
                       Admin
                     </Link>
                   )}
-                  
+
                   <button
                     onClick={handleSignOut}
                     className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700"

@@ -12,7 +12,6 @@ const RegisterPage = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  
   const [loading, setLoading] = useState(false);
   const [uploadingImages, setUploadingImages] = useState(false);
   const [existingProfile, setExistingProfile] = useState(null);
@@ -32,14 +31,31 @@ const RegisterPage = () => {
   const [uploadedImages, setUploadedImages] = useState([]);
 
   const countries = [
-    'United Kingdom', 'Australia', 'Japan', 'Germany', 'France', 
-    'Netherlands', 'Belgium', 'Switzerland', 'Austria', 'Other'
+    'United Kingdom',
+    'Australia',
+    'Japan',
+    'Germany',
+    'France',
+    'Netherlands',
+    'Belgium',
+    'Switzerland',
+    'Austria',
+    'Other'
   ];
 
   const ukRegions = [
-    'London', 'South East', 'South West', 'East of England', 'East Midlands',
-    'West Midlands', 'Yorkshire and the Humber', 'North West', 'North East',
-    'Scotland', 'Wales', 'Northern Ireland'
+    'London',
+    'South East',
+    'South West',
+    'East of England',
+    'East Midlands',
+    'West Midlands',
+    'Yorkshire and the Humber',
+    'North West',
+    'North East',
+    'Scotland',
+    'Wales',
+    'Northern Ireland'
   ];
 
   const years = ['2015', '2016'];
@@ -156,6 +172,7 @@ const RegisterPage = () => {
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
+    
     if (files.length + uploadedImages.length > 3) {
       alert('Maximum 3 images allowed');
       return;
@@ -199,7 +216,7 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!user) {
       alert('Please sign in to register your Aero');
       localStorage.setItem('redirectAfterAuth', location.pathname);
@@ -222,7 +239,7 @@ const RegisterPage = () => {
         formData.display_name,
         existingProfile ? user.id : null
       );
-
+      
       console.log('Generated username:', username);
 
       const profileData = {
@@ -276,7 +293,9 @@ const RegisterPage = () => {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white p-8 rounded-xl shadow-sm text-center max-w-md">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Sign In or Create an Account</h2>
-          <p className="text-gray-600 mb-6">To register your GT86 Aero, you'll need to sign in or create a free account.</p>
+          <p className="text-gray-600 mb-6">
+            To register your GT86 Aero, you'll need to sign in or create a free account.
+          </p>
           <button
             onClick={() => {
               localStorage.setItem('redirectAfterAuth', location.pathname);

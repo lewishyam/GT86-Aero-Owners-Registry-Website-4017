@@ -47,17 +47,20 @@ const Footer = () => {
             <div className="space-y-2">
               <p className="text-gray-300 text-sm">
                 <span className="font-medium">
-                  {settings.footer_stats_production || '~200'} {settings.footer_stats_production ? '' : 'UK Aeros produced'}
+                  {settings.footer_stats_production || '~200'}
+                  {settings.footer_stats_production ? '' : ' UK Aeros produced'}
                 </span>
               </p>
               <p className="text-gray-300 text-sm">
                 <span className="font-medium">
-                  {settings.footer_stats_years || '2015-2016'} {settings.footer_stats_years ? '' : 'model years'}
+                  {settings.footer_stats_years || '2015-2016'}
+                  {settings.footer_stats_years ? '' : ' model years'}
                 </span>
               </p>
               <p className="text-gray-300 text-sm">
                 <span className="font-medium">
-                  {settings.footer_stats_global || 'Global'} {settings.footer_stats_global ? '' : 'registry'}
+                  {settings.footer_stats_global || 'Global'}
+                  {settings.footer_stats_global ? '' : ' registry'}
                 </span>
               </p>
             </div>

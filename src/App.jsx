@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSiteSettings } from './hooks/useSiteSettings';
 import Header from './components/Layout/Header';
@@ -23,7 +23,6 @@ import BlogManagement from './pages/Admin/BlogManagement';
 import BlogEditor from './pages/Admin/BlogEditor';
 import MemberManagement from './pages/Admin/MemberManagement';
 import CodeSnippets from './pages/Admin/CodeSnippets';
-
 import './App.css';
 
 // Component to handle route animations
@@ -80,8 +79,8 @@ function App() {
         
         <Routes>
           {/* Admin Routes (Protected) */}
-          <Route 
-            path="/admin/*" 
+          <Route
+            path="/admin/*"
             element={
               <AdminRoute>
                 <AdminLayout />
@@ -98,8 +97,8 @@ function App() {
           </Route>
 
           {/* All other routes with Header/Footer */}
-          <Route 
-            path="*" 
+          <Route
+            path="*"
             element={
               <>
                 <Header />
@@ -108,10 +107,10 @@ function App() {
                 </main>
                 <Footer />
               </>
-            } 
+            }
           />
         </Routes>
-
+        
         <CodeInjection location="body" />
       </div>
     </Router>

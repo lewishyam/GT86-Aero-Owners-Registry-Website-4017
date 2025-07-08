@@ -16,11 +16,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
   const [uploadingImage, setUploadingImage] = useState(false);
   const [savedSelection, setSavedSelection] = useState(null);
 
+  // Initialize editor content only once when component mounts
   useEffect(() => {
-    if (editorRef.current) {
-      editorRef.current.innerHTML = value || '';
+    if (editorRef.current && value !== undefined) {
+      // Only set innerHTML if content is different to avoid cursor issues
+      if (editorRef.current.innerHTML !== value) {
+        editorRef.current.innerHTML = value || '';
+      }
     }
-  }, []);
+  }, []); // Empty dependency array - only run on mount
 
   const saveSelection = () => {
     const selection = window.getSelection();
@@ -45,9 +49,15 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
   };
 
   const updateContent = () => {
-    if (editorRef.current) {
-      onChange(editorRef.current.innerHTML);
+    if (editorRef.current && onChange) {
+      const content = editorRef.current.innerHTML;
+      onChange(content);
     }
+  };
+
+  const handleInput = (e) => {
+    // Handle input event directly without manipulating the content
+    updateContent();
   };
 
   const handleKeyDown = (e) => {
@@ -142,7 +152,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
     }
 
     setUploadingImage(true);
-
     try {
       const fileName = `blog/${Date.now()}-${file.name}`;
       const { data, error } = await supabase.storage
@@ -197,7 +206,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
         >
           <SafeIcon icon={FiBold} className="h-4 w-4" />
         </button>
-
         <button
           type="button"
           onClick={() => handleCommand('italic')}
@@ -206,7 +214,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
         >
           <SafeIcon icon={FiItalic} className="h-4 w-4" />
         </button>
-
         <button
           type="button"
           onClick={() => handleCommand('underline')}
@@ -227,7 +234,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
         >
           <SafeIcon icon={FiLink} className="h-4 w-4" />
         </button>
-
         <button
           type="button"
           onClick={() => setIsImageModalOpen(true)}
@@ -248,7 +254,6 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
         >
           •
         </button>
-
         <button
           type="button"
           onClick={() => handleCommand('insertOrderedList')}
@@ -275,11 +280,17 @@ const RichTextEditor = ({ value, onChange, placeholder = 'Start writing...' }) =
       <div
         ref={editorRef}
         contentEditable
-        onInput={updateContent}
+        onInput={handleInput}
         onKeyDown={handleKeyDown}
         className="p-4 min-h-[300px] focus:outline-none"
-        style={{ wordWrap: 'break-word', overflowWrap: 'break-word' }}
-        dangerouslySetInnerHTML={{ __html: value || '' }}
+        style={{
+          wordWrap: 'break-word',
+          overflowWrap: 'break-word',
+          direction: 'ltr', // Ensure left-to-right text direction
+          textAlign: 'left', // Ensure left text alignment
+          unicodeBidi: 'normal' // Ensure normal text flow
+        }}
+        placeholder={placeholder}
         suppressContentEditableWarning={true}
       />
 

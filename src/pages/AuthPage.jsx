@@ -48,17 +48,16 @@ const AuthPage = () => {
           alert('Passwords do not match');
           return;
         }
-
+        
         const { error } = await signUp(formData.email, formData.password);
         if (error) throw error;
-
+        
         alert('Account created successfully! You can now sign in.');
         setIsSignUp(false);
         setFormData({ ...formData, password: '', confirmPassword: '' });
       } else {
         const { error } = await signIn(formData.email, formData.password);
         if (error) throw error;
-
         // Redirect will be handled by useEffect
       }
     } catch (error) {
@@ -79,9 +78,9 @@ const AuthPage = () => {
       const { error } = await supabase.auth.resetPasswordForEmail(formData.email, {
         redirectTo: `${window.location.origin}/auth`
       });
-
+      
       if (error) throw error;
-
+      
       setResetEmailSent(true);
       alert('Password reset email sent! Check your inbox.');
     } catch (error) {
@@ -103,7 +102,7 @@ const AuthPage = () => {
           </h2>
           <p className="text-gray-600">
             {isSignUp 
-              ? 'Create your account to register your GT86 Aero' 
+              ? 'Create your account to register your GT86 Aero'
               : 'Sign in to manage your GT86 Aero profile'
             }
           </p>
@@ -158,9 +157,9 @@ const AuthPage = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute inset-y-0 right-0 pr-3 flex items-center"
                 >
-                  <SafeIcon 
-                    icon={showPassword ? FiEyeOff : FiEye} 
-                    className="h-5 w-5 text-gray-400 hover:text-gray-600" 
+                  <SafeIcon
+                    icon={showPassword ? FiEyeOff : FiEye}
+                    className="h-5 w-5 text-gray-400 hover:text-gray-600"
                   />
                 </button>
               </div>
@@ -211,13 +210,19 @@ const AuthPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm mb-3">
-              {isSignUp ? 'Already have an account?' : 'New to GT86 Aero Owners Club?'}
+              {isSignUp 
+                ? 'Already have an account?' 
+                : 'New to GT86 Aero Owners Club?'
+              }
             </p>
             <button
               onClick={() => setIsSignUp(!isSignUp)}
               className="text-red-600 hover:text-red-700 font-medium"
             >
-              {isSignUp ? 'Sign in to your account' : 'Create a free account'}
+              {isSignUp 
+                ? 'Sign in to your account' 
+                : 'Create a free account'
+              }
             </button>
           </div>
 

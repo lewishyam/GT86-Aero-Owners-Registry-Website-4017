@@ -89,9 +89,9 @@ const MemberProfilePage = () => {
 
   const getDisplayImages = () => {
     if (!profile) return [];
-
+    
     const images = [];
-
+    
     // Add Instagram images
     if (profile.instagram_post_urls && Array.isArray(profile.instagram_post_urls)) {
       profile.instagram_post_urls.forEach(url => {
@@ -153,7 +153,7 @@ const MemberProfilePage = () => {
   // Error states
   if (error) {
     let title, message, actionText, actionHref;
-
+    
     switch (error) {
       case 'notfound':
         title = 'Profile Not Found';
@@ -242,7 +242,7 @@ const MemberProfilePage = () => {
                   )}
                 </h1>
                 <p className="text-red-100 mt-2">GT86 Aero Owner</p>
-
+                
                 {/* Badges */}
                 {profile.badges && Array.isArray(profile.badges) && profile.badges.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-4">
@@ -257,7 +257,7 @@ const MemberProfilePage = () => {
                     ))}
                   </div>
                 )}
-
+                
                 {profile.featured_quote && (
                   <p className="text-red-100 mt-4 italic">"{profile.featured_quote}"</p>
                 )}
@@ -279,7 +279,6 @@ const MemberProfilePage = () => {
                         <p className="font-medium">{profile.year} GT86 Aero</p>
                       </div>
                     </div>
-
                     <div className="flex items-center space-x-3">
                       <div className="h-5 w-5 flex items-center justify-center">
                         <div className="h-3 w-3 bg-gray-400 rounded-full"></div>
@@ -289,7 +288,6 @@ const MemberProfilePage = () => {
                         <p className="font-medium">{profile.colour} • {profile.transmission}</p>
                       </div>
                     </div>
-
                     <div className="flex items-center space-x-3">
                       <SafeIcon icon={FiMapPin} className="h-5 w-5 text-gray-400" />
                       <div>
@@ -388,14 +386,14 @@ const MemberProfilePage = () => {
                       }}
                     />
                   </div>
-
+                  
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-300 rounded-lg flex items-center justify-center">
                     <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-white bg-opacity-90 p-2 rounded-full">
                       <span className="text-gray-800 text-sm font-medium">View</span>
                     </div>
                   </div>
-
+                  
                   {image.type === 'instagram' && (
                     <div className="absolute top-2 right-2">
                       <div className="bg-black bg-opacity-50 text-white p-1 rounded-full">
