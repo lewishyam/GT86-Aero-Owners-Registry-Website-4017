@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSiteSettings } from './hooks/useSiteSettings';
 import Header from './components/Layout/Header';
@@ -24,26 +24,6 @@ import BlogEditor from './pages/Admin/BlogEditor';
 import MemberManagement from './pages/Admin/MemberManagement';
 import CodeSnippets from './pages/Admin/CodeSnippets';
 import './App.css';
-
-// Component to handle route animations
-const AnimatedRoutes = () => {
-  const location = useLocation();
-  
-  return (
-    <AnimatePresence mode="wait">
-      <Routes location={location} key={location.pathname}>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route path="/directory" element={<DirectoryPage />} />
-        <Route path="/auth" element={<AuthPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} />
-        <Route path="/blog" element={<BlogPage />} />
-        <Route path="/blog/:slug" element={<BlogPostPage />} />
-        <Route path="/member/:username" element={<MemberProfilePage />} />
-      </Routes>
-    </AnimatePresence>
-  );
-};
 
 function App() {
   const { settings } = useSiteSettings();
@@ -96,14 +76,23 @@ function App() {
             <Route path="snippets" element={<CodeSnippets />} />
           </Route>
 
-          {/* All other routes with Header/Footer */}
+          {/* Public Routes with Header/Footer */}
           <Route
             path="*"
             element={
               <>
                 <Header />
                 <main className="flex-1">
-                  <AnimatedRoutes />
+                  <Routes>
+                    <Route path="/" element={<HomePage />} />
+                    <Route path="/register" element={<RegisterPage />} />
+                    <Route path="/directory" element={<DirectoryPage />} />
+                    <Route path="/auth" element={<AuthPage />} />
+                    <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/blog" element={<BlogPage />} />
+                    <Route path="/blog/:slug" element={<BlogPostPage />} />
+                    <Route path="/member/:username" element={<MemberProfilePage />} />
+                  </Routes>
                 </main>
                 <Footer />
               </>

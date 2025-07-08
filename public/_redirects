@@ -1,1 +1,2 @@
-/*    /index.html   200
+# This file is no longer needed with hash routing
+# All routing is handled client-side with HashRouter
