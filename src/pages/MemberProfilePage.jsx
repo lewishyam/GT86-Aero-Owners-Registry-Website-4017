@@ -4,9 +4,10 @@ import { motion } from 'framer-motion';
 import { supabase } from '../config/supabase';
 import SafeIcon from '../common/SafeIcon';
 import ImageLightbox from '../components/ImageLightbox';
+import RouteFallback from '../components/Debug/RouteFallback';
 import * as FiIcons from 'react-icons/fi';
 
-const { FiMapPin, FiCar, FiInstagram, FiStar, FiArrowLeft, FiCalendar, FiAward, FiLock } = FiIcons;
+const { FiMapPin, FiCar, FiInstagram, FiStar, FiArrowLeft, FiCalendar, FiAward, FiLock, FiExternalLink } = FiIcons;
 
 const MemberProfilePage = () => {
   const { username } = useParams();
@@ -15,6 +16,11 @@ const MemberProfilePage = () => {
   const [error, setError] = useState(null);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [debugInfo, setDebugInfo] = useState({
+    queryAttempted: false,
+    queryResult: null,
+    queryError: null
+  });
 
   useEffect(() => {
     console.log('MemberProfilePage: Starting fetch for username:', username);
@@ -31,6 +37,7 @@ const MemberProfilePage = () => {
 
     try {
       console.log('Fetching profile for username:', username);
+      setDebugInfo(prev => ({ ...prev, queryAttempted: true }));
       
       // First, try to get the profile regardless of public status to check if it exists
       const { data: profileCheck, error: checkError } = await supabase
@@ -40,6 +47,10 @@ const MemberProfilePage = () => {
         .single();
 
       console.log('Profile check result:', { profileCheck, checkError });
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        initialCheck: { data: profileCheck, error: checkError } 
+      }));
 
       if (checkError) {
         if (checkError.code === 'PGRST116') {
@@ -70,6 +81,10 @@ const MemberProfilePage = () => {
         .single();
 
       console.log('Full profile fetch result:', { fullProfile, fetchError });
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        fullQuery: { data: fullProfile, error: fetchError } 
+      }));
 
       if (fetchError) {
         console.error('Error fetching full profile:', fetchError);
@@ -82,6 +97,10 @@ const MemberProfilePage = () => {
     } catch (error) {
       console.error('Unexpected error fetching profile:', error);
       setError('unexpected');
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        queryError: error 
+      }));
     } finally {
       setLoading(false);
     }
@@ -92,23 +111,7 @@ const MemberProfilePage = () => {
     
     const images = [];
     
-    // Add Instagram images
-    if (profile.instagram_post_urls && Array.isArray(profile.instagram_post_urls)) {
-      profile.instagram_post_urls.forEach(url => {
-        if (url && typeof url === 'string') {
-          const postId = url.split('/p/')[1]?.split('/')[0];
-          if (postId) {
-            images.push({
-              src: `https://www.instagram.com/p/${postId}/media/?size=l`,
-              type: 'instagram',
-              url: url
-            });
-          }
-        }
-      });
-    }
-
-    // Add uploaded images
+    // Only add uploaded images (not attempting to embed Instagram images)
     if (profile.photo_urls && Array.isArray(profile.photo_urls)) {
       profile.photo_urls.forEach(url => {
         if (url && typeof url === 'string') {
@@ -120,7 +123,7 @@ const MemberProfilePage = () => {
         }
       });
     }
-
+    
     return images;
   };
 
@@ -137,17 +140,53 @@ const MemberProfilePage = () => {
     return 'bg-blue-100 text-blue-800';
   };
 
-  // Loading state
+  // Format Instagram URLs for display
+  const formatInstagramUrl = (url) => {
+    if (!url) return '';
+    
+    // Extract post ID if it's a standard Instagram URL
+    let postId = '';
+    try {
+      if (url.includes('/p/')) {
+        postId = url.split('/p/')[1]?.split('/')[0] || '';
+        if (postId) {
+          return `instagram.com/p/${postId}`;
+        }
+      }
+    } catch (e) {
+      console.error('Error formatting Instagram URL:', e);
+    }
+    
+    // If we couldn't extract a post ID, just return the URL as is
+    // but strip protocol and www for cleaner display
+    return url.replace(/^https?:\/\/(www\.)?/i, '');
+  };
+
+  // Debug UI
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center">
+        <div className="text-center mb-8">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading profile...</p>
           <p className="text-gray-400 text-sm mt-2">Fetching: {username}</p>
         </div>
+        
+        <div className="bg-white p-4 rounded-lg shadow-sm max-w-md w-full">
+          <h3 className="text-sm font-semibold text-gray-700 mb-2">Debug Information</h3>
+          <p className="text-xs text-gray-600">
+            Table: <span className="font-mono">owners</span><br />
+            Username: <span className="font-mono">{username}</span><br />
+            Query attempted: {debugInfo.queryAttempted ? 'Yes' : 'No'}
+          </p>
+        </div>
       </div>
     );
+  }
+
+  // Fallback for unexpected issues
+  if (!profile && !error) {
+    return <RouteFallback componentName="MemberProfilePage" />;
   }
 
   // Error states
@@ -197,8 +236,17 @@ const MemberProfilePage = () => {
                 <SafeIcon icon={FiArrowLeft} className="h-4 w-4 mr-2" />
                 {actionText}
               </a>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-gray-500 mt-4">
                 Looking for: <span className="font-mono">{username}</span>
+              </div>
+              
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <details className="text-left">
+                  <summary className="text-xs text-gray-500 cursor-pointer">Debug Info</summary>
+                  <pre className="mt-2 p-2 bg-gray-50 rounded text-xs overflow-x-auto">
+                    {JSON.stringify(debugInfo, null, 2)}
+                  </pre>
+                </details>
               </div>
             </div>
           </div>
@@ -209,6 +257,8 @@ const MemberProfilePage = () => {
 
   // Profile successfully loaded
   const displayImages = getDisplayImages();
+  const hasInstagramPosts = profile.instagram_post_urls && profile.instagram_post_urls.length > 0 && 
+                            profile.instagram_post_urls.some(url => url && url.trim());
 
   return (
     <div className="min-h-screen bg-gray-50 py-12">
@@ -318,6 +368,33 @@ const MemberProfilePage = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Instagram Posts */}
+                {hasInstagramPosts && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Instagram Posts</h3>
+                    <ul className="space-y-2">
+                      {profile.instagram_post_urls.map((url, index) => {
+                        if (!url || !url.trim()) return null;
+                        
+                        return (
+                          <li key={index} className="flex items-center space-x-2 text-sm">
+                            <SafeIcon icon={FiInstagram} className="h-4 w-4 text-pink-500 flex-shrink-0" />
+                            <a 
+                              href={url.startsWith('http') ? url : `https://${url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 hover:underline truncate flex-1"
+                            >
+                              {formatInstagramUrl(url)}
+                            </a>
+                            <SafeIcon icon={FiExternalLink} className="h-3 w-3 text-gray-400 flex-shrink-0" />
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
+                )}
               </div>
 
               {/* Social & Mods */}
@@ -357,7 +434,7 @@ const MemberProfilePage = () => {
           </div>
         </motion.div>
 
-        {/* Image Gallery */}
+        {/* Image Gallery - Only for uploaded photos */}
         {displayImages.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -393,21 +470,13 @@ const MemberProfilePage = () => {
                       <span className="text-gray-800 text-sm font-medium">View</span>
                     </div>
                   </div>
-                  
-                  {image.type === 'instagram' && (
-                    <div className="absolute top-2 right-2">
-                      <div className="bg-black bg-opacity-50 text-white p-1 rounded-full">
-                        <SafeIcon icon={FiInstagram} className="h-3 w-3" />
-                      </div>
-                    </div>
-                  )}
                 </motion.div>
               ))}
             </div>
           </motion.div>
         )}
 
-        {/* Image Lightbox */}
+        {/* Image Lightbox - Only for uploaded images */}
         <ImageLightbox
           images={displayImages}
           initialIndex={lightboxIndex}

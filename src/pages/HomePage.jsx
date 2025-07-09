@@ -71,18 +71,9 @@ const HomePage = () => {
     }
   };
 
+  // Simplified image retrieval - only use uploaded photos
   const getProfileImage = (profile) => {
-    if (profile.photo_urls && profile.photo_urls.length > 0) {
-      return profile.photo_urls[0];
-    }
-    if (profile.instagram_post_urls && profile.instagram_post_urls.length > 0) {
-      const postUrl = profile.instagram_post_urls[0];
-      const postId = postUrl.split('/p/')[1]?.split('/')[0];
-      if (postId) {
-        return `https://www.instagram.com/p/${postId}/media/?size=m`;
-      }
-    }
-    return null;
+    return profile.photo_urls && profile.photo_urls.length > 0 ? profile.photo_urls[0] : null;
   };
 
   return (

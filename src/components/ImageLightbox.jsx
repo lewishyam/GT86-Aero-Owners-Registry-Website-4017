@@ -15,7 +15,7 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
   useEffect(() => {
     const handleKeyPress = (e) => {
       if (!isOpen) return;
-      
+
       switch (e.key) {
         case 'Escape':
           onClose();
@@ -32,7 +32,17 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
     };
 
     document.addEventListener('keydown', handleKeyPress);
-    return () => document.removeEventListener('keydown', handleKeyPress);
+    
+    // Add overflow hidden to body when lightbox is open to prevent scrolling
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    }
+    
+    return () => {
+      document.removeEventListener('keydown', handleKeyPress);
+      // Restore body overflow when lightbox is closed
+      document.body.style.overflow = '';
+    };
   }, [isOpen]);
 
   const goToNext = () => {
@@ -81,7 +91,6 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
             >
               <SafeIcon icon={FiChevronLeft} className="h-8 w-8" />
             </button>
-
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -100,17 +109,20 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
           initial={{ scale: 0.8, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3 }}
-          className="max-w-[90vw] max-h-[90vh] relative"
+          className="max-w-[90vw] max-h-[85vh] relative"
           onClick={(e) => e.stopPropagation()}
         >
-          <img
-            src={currentImage.src}
-            alt={`Gallery image ${currentIndex + 1}`}
-            className="max-w-full max-h-full object-contain"
-            onError={(e) => {
-              e.target.style.display = 'none';
-            }}
-          />
+          <div className="w-full h-full flex items-center justify-center">
+            <img
+              src={currentImage.src}
+              alt={`Gallery image ${currentIndex + 1}`}
+              className="max-w-full max-h-[80vh] object-contain"
+              style={{ margin: 'auto' }}
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
 
           {/* Instagram Link */}
           {currentImage.type === 'instagram' && currentImage.url && (
@@ -127,7 +139,7 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
 
         {/* Thumbnail Navigation */}
         {images.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black bg-opacity-50 p-2 rounded-lg">
+          <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 bg-black bg-opacity-50 p-2 rounded-lg overflow-x-auto max-w-[90vw]">
             {images.map((image, index) => (
               <button
                 key={index}
@@ -135,7 +147,7 @@ const ImageLightbox = ({ images, initialIndex = 0, isOpen, onClose }) => {
                   e.stopPropagation();
                   setCurrentIndex(index);
                 }}
-                className={`w-12 h-12 rounded overflow-hidden border-2 transition-colors ${
+                className={`w-12 h-12 rounded overflow-hidden border-2 transition-colors flex-shrink-0 ${
                   index === currentIndex ? 'border-white' : 'border-transparent'
                 }`}
               >

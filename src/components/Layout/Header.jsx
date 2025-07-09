@@ -43,14 +43,10 @@ const Header = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center space-x-3">
             {settings.site_logo_url ? (
-              <img
-                src={settings.site_logo_url}
-                alt="GT86Aero.com Logo"
-                className="h-10 w-auto"
-              />
+              <img src={settings.site_logo_url} alt="GT86Aero.com Logo" className="h-10 w-auto" />
             ) : (
-              <div className="bg-red-600 p-2 rounded-lg">
-                <SafeIcon icon={FiCar} className="h-6 w-6 text-white" />
+              <div className="h-10 w-auto flex items-center">
+                <span className="text-xl font-bold text-gray-900">GT86Aero.com</span>
               </div>
             )}
             <div>
@@ -66,9 +62,7 @@ const Header = () => {
                 key={item.name}
                 to={item.href}
                 className={`text-sm font-medium transition-colors ${
-                  isActivePath(item.href)
-                    ? 'text-red-600'
-                    : 'text-gray-700 hover:text-red-600'
+                  isActivePath(item.href) ? 'text-red-600' : 'text-gray-700 hover:text-red-600'
                 }`}
               >
                 {item.name}
@@ -80,29 +74,25 @@ const Header = () => {
                 <Link
                   to="/dashboard"
                   className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                    isActivePath('/dashboard')
-                      ? 'text-red-600'
-                      : 'text-gray-700 hover:text-red-600'
+                    isActivePath('/dashboard') ? 'text-red-600' : 'text-gray-700 hover:text-red-600'
                   }`}
                 >
                   <SafeIcon icon={FiUser} className="h-4 w-4" />
                   <span>Dashboard</span>
                 </Link>
-
+                
                 {isAdmin && (
                   <Link
                     to="/admin"
                     className={`flex items-center space-x-1 text-sm font-medium transition-colors ${
-                      isActivePath('/admin')
-                        ? 'text-red-600'
-                        : 'text-gray-700 hover:text-red-600'
+                      isActivePath('/admin') ? 'text-red-600' : 'text-gray-700 hover:text-red-600'
                     }`}
                   >
                     <SafeIcon icon={FiSettings} className="h-4 w-4" />
                     <span>Admin</span>
                   </Link>
                 )}
-
+                
                 <button
                   onClick={handleSignOut}
                   className="flex items-center space-x-1 text-sm font-medium text-gray-700 hover:text-red-600 transition-colors"
@@ -148,9 +138,7 @@ const Header = () => {
                   to={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={`block px-3 py-2 text-base font-medium ${
-                    isActivePath(item.href)
-                      ? 'text-red-600'
-                      : 'text-gray-700'
+                    isActivePath(item.href) ? 'text-red-600' : 'text-gray-700'
                   }`}
                 >
                   {item.name}
@@ -163,28 +151,24 @@ const Header = () => {
                     to="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
                     className={`block px-3 py-2 text-base font-medium ${
-                      isActivePath('/dashboard')
-                        ? 'text-red-600'
-                        : 'text-gray-700'
+                      isActivePath('/dashboard') ? 'text-red-600' : 'text-gray-700'
                     }`}
                   >
                     Dashboard
                   </Link>
-
+                  
                   {isAdmin && (
                     <Link
                       to="/admin"
                       onClick={() => setMobileMenuOpen(false)}
                       className={`block px-3 py-2 text-base font-medium ${
-                        isActivePath('/admin')
-                          ? 'text-red-600'
-                          : 'text-gray-700'
+                        isActivePath('/admin') ? 'text-red-600' : 'text-gray-700'
                       }`}
                     >
                       Admin
                     </Link>
                   )}
-
+                  
                   <button
                     onClick={handleSignOut}
                     className="block w-full text-left px-3 py-2 text-base font-medium text-gray-700"

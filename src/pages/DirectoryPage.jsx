@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { supabase } from '../config/supabase';
 import SafeIcon from '../common/SafeIcon';
+import RouteFallback from '../components/Debug/RouteFallback';
 import * as FiIcons from 'react-icons/fi';
 
 const { FiFilter, FiInstagram, FiMapPin, FiCar, FiStar } = FiIcons;
@@ -11,6 +12,7 @@ const DirectoryPage = () => {
   const [owners, setOwners] = useState([]);
   const [filteredOwners, setFilteredOwners] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filters, setFilters] = useState({
     colour: '',
     country: '',
@@ -34,12 +36,18 @@ const DirectoryPage = () => {
         .eq('public_profile', true)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
+      if (error) {
+        console.error('Error fetching owners:', error);
+        setError(error);
+        throw error;
+      }
+      
       console.log('Owners fetched:', data);
       setOwners(data || []);
+      setError(null);
     } catch (error) {
       console.error('Error fetching owners:', error);
+      setError(error);
     } finally {
       setLoading(false);
     }
@@ -83,6 +91,34 @@ const DirectoryPage = () => {
     return [...new Set(values)].sort();
   };
 
+  // If there's an error or unexpected state, show the debug fallback
+  if (!loading && error) {
+    return (
+      <div className="min-h-screen bg-gray-50 p-8">
+        <div className="max-w-4xl mx-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-bold text-red-600 mb-4">Directory Error</h2>
+            <p className="text-gray-700 mb-4">We encountered an error loading the directory.</p>
+            
+            <div className="bg-gray-50 p-4 rounded-lg mb-6">
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">Error Details</h3>
+              <pre className="text-xs overflow-x-auto whitespace-pre-wrap">
+                {JSON.stringify(error, null, 2)}
+              </pre>
+            </div>
+            
+            <button 
+              onClick={fetchOwners}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -92,6 +128,11 @@ const DirectoryPage = () => {
         </div>
       </div>
     );
+  }
+
+  // If we have no owners and no error, use the debug fallback
+  if (owners.length === 0 && !error) {
+    return <RouteFallback componentName="DirectoryPage" />;
   }
 
   return (
@@ -215,20 +256,9 @@ const DirectoryPage = () => {
 };
 
 const OwnerCard = ({ owner }) => {
+  // Simplified approach - just use the first photo_url directly
   const getDisplayImage = () => {
-    // Try to get first Instagram post URL or fallback to uploaded image
-    const instagramUrl = owner.instagram_post_urls?.[0];
-    const uploadedImage = owner.photo_urls?.[0];
-
-    if (instagramUrl) {
-      // Extract Instagram post ID for embed
-      const postId = instagramUrl.split('/p/')[1]?.split('/')[0];
-      if (postId) {
-        return `https://www.instagram.com/p/${postId}/media/?size=m`;
-      }
-    }
-
-    return uploadedImage;
+    return owner.photo_urls && owner.photo_urls.length > 0 ? owner.photo_urls[0] : null;
   };
 
   const displayImage = getDisplayImage();
@@ -257,12 +287,12 @@ const OwnerCard = ({ owner }) => {
             </div>
           )}
         </div>
-
+        
         <div className="p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
             {owner.display_name}
           </h3>
-
+          
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex items-center space-x-2">
               <SafeIcon icon={FiMapPin} className="h-4 w-4" />
@@ -271,12 +301,10 @@ const OwnerCard = ({ owner }) => {
                 {owner.uk_region && ` • ${owner.uk_region}`}
               </span>
             </div>
-
             <div className="flex items-center space-x-2">
               <SafeIcon icon={FiCar} className="h-4 w-4" />
               <span>{owner.year} • {owner.colour} • {owner.transmission}</span>
             </div>
-
             {owner.instagram_handle && (
               <div className="flex items-center space-x-2 text-red-600">
                 <SafeIcon icon={FiInstagram} className="h-4 w-4" />
@@ -284,7 +312,7 @@ const OwnerCard = ({ owner }) => {
               </div>
             )}
           </div>
-
+          
           {owner.mod_list && (
             <div className="mt-4 pt-4 border-t border-gray-100">
               <p className="text-sm text-gray-600 line-clamp-2">

@@ -60,7 +60,7 @@ const RegisterPage = () => {
 
   const years = ['2015', '2016'];
   const transmissions = ['Manual', 'Auto'];
-  const colours = ['White', 'Red', 'Black', 'Grey', 'Silver'];
+  const colours = ['White', 'Red', 'Black', 'Grey', 'Silver', 'Orange'];
 
   useEffect(() => {
     if (user) {
@@ -128,7 +128,6 @@ const RegisterPage = () => {
 
       const { data, error } = await query;
       if (error) throw error;
-
       return data.length === 0;
     } catch (error) {
       console.error('Error checking username:', error);
@@ -172,7 +171,6 @@ const RegisterPage = () => {
 
   const handleImageUpload = async (e) => {
     const files = Array.from(e.target.files);
-    
     if (files.length + uploadedImages.length > 3) {
       alert('Maximum 3 images allowed');
       return;
@@ -233,13 +231,11 @@ const RegisterPage = () => {
 
     try {
       console.log('Starting profile save process');
-      
       const cleanInstagramUrls = formData.instagram_post_urls.filter(url => url.trim());
       const username = await generateUniqueUsername(
         formData.display_name,
         existingProfile ? user.id : null
       );
-      
       console.log('Generated username:', username);
 
       const profileData = {
@@ -271,14 +267,15 @@ const RegisterPage = () => {
       }
 
       console.log('Database operation result:', result);
-
       if (result.error) {
         console.error('Database error:', result.error);
         throw result.error;
       }
 
       console.log('Profile saved successfully:', result.data);
-      alert(existingProfile ? 'Profile updated successfully!' : 'Registration successful! Welcome to the GT86 Aero Owners Club.');
+      alert(existingProfile 
+        ? 'Profile updated successfully!' 
+        : 'Registration successful! Welcome to the GT86 Aero Owners Club.');
       navigate('/dashboard');
     } catch (error) {
       console.error('Error saving profile:', error);
@@ -395,7 +392,6 @@ const RegisterPage = () => {
               <p className="text-sm text-gray-600 mb-3">
                 Upload images if you're not using Instagram posts
               </p>
-              
               {uploadedImages.length < 3 && (
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                   <input
@@ -416,7 +412,6 @@ const RegisterPage = () => {
                   </label>
                 </div>
               )}
-
               {uploadedImages.length > 0 && (
                 <div className="grid grid-cols-2 gap-4 mt-4">
                   {uploadedImages.map((url, index) => (
@@ -497,7 +492,6 @@ const RegisterPage = () => {
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Transmission *
@@ -515,7 +509,6 @@ const RegisterPage = () => {
                   ))}
                 </select>
               </div>
-
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Colour *
@@ -564,7 +557,6 @@ const RegisterPage = () => {
                   Make my profile public in the directory
                 </label>
               </div>
-
               <div className="flex items-center">
                 <input
                   type="checkbox"
